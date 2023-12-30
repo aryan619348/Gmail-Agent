@@ -122,7 +122,7 @@ def get_events_todays_date(input=None):
 get_events_on_date=Tool(
     name='get_events_on_date',
     func=get_events_on_date,
-    description="Used to get the meeting details of a specific date. input is the date in the format year-month-day"
+    description="Used to get the meeting details of a specific date. input is the date in the format 2023-MM-DD"
 )
 
 get_events_todays_date = Tool(
