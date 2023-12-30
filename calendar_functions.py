@@ -1,6 +1,8 @@
 import datetime
 import os.path
 from datetime import timedelta
+from datetime import datetime
+
 import json
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -8,8 +10,12 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
+from langchain.agents import tool
+from langchain.pydantic_v1 import BaseModel, Field
+from langchain.agents import Tool
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
+
 
 def create_service():
     creds = None
@@ -30,9 +36,11 @@ def create_service():
     service = build("calendar", "v3", credentials=creds)
     return service
 
-
+@tool
 def get_events_on_date(target_date):
+    """Used to find events on the calendar for a specific date input is the date"""
     service=create_service()
+    target_date = datetime.strptime(target_date, "%Y-%m-%d").date()
     start_time = target_date.isoformat() + 'T00:00:00Z'
     end_time = (target_date + timedelta(days=1)).isoformat() + 'T00:00:00Z'
 
@@ -43,7 +51,9 @@ def get_events_on_date(target_date):
 
     return events
 
+@tool
 def find_event_by_summary(summary):
+    """Used to find events on the calendar using the title or summary"""
     service=create_service()
     events_result = service.events().list(
         calendarId='primary', q=summary).execute()
@@ -62,8 +72,16 @@ def find_event_by_summary(summary):
 
     return events
 
+@tool
+def create_event(input_str, attendees=None, reminders=None):
+    """Used to find events on the calendar needs to have a title,location,description,start_time, and end time as compulsory parameters"""
 
-def create_event(summary, location, description, start_time, end_time, attendees=None, reminders=None):
+    item_data = input_str.split(',')
+    summary = item_data[0].strip()
+    location = item_data[1].strip()
+    description = item_data[2].strip()
+    start_time = item_data[3].strip()
+    end_time=item_data[4].strip()
     service=create_service()
     event = {
         'summary': summary,
@@ -84,8 +102,46 @@ def create_event(summary, location, description, start_time, end_time, attendees
     try:
         created_event = service.events().insert(
             calendarId='primary', body=event).execute()
-        output =f'Event created: {created_event.get("htmlLink")}'
+        output =f'{created_event.get("htmlLink")}'
         print(output)
-        return json.dumps(output)
+        return output
     except HttpError as e:
-        print(f'Error creating event: {e}')
+        out=f'Error creating event: {e}'
+        return json.dumps(output)
+
+
+def get_events_todays_date(input=None):
+    """Used to get todays date"""
+    today_date = datetime.now().date()
+    today_date=str(today_date)
+    events =get_events_on_date(today_date)
+    return events
+
+
+
+get_events_on_date=Tool(
+    name='get_events_on_date',
+    func=get_events_on_date,
+    description="Used to get the meeting details of a specific date. input is the date in the format year-month-day"
+)
+
+get_events_todays_date = Tool(
+    name='get_events_todays_date',
+    func=get_events_todays_date,
+    description="Use to when you need to get the meetings for today."
+)
+
+find_event_by_summary= Tool(
+    name='find_event_by_summary',
+    func=find_event_by_summary,
+    description="Used to find a meeting or event on calendar. input is the meeting name"
+)
+
+create_event=Tool(
+    name='create_event',
+    func=create_event,
+    description="Used to create a new event. input is the meeting-name,location, description, start_time as YYYY-MM-DDTHH:MM:SS, end_time in YYYY-MM-DDTHH:MM:SS"
+)
+tools =[find_event_by_summary,get_events_on_date,get_events_todays_date,create_event]
+
+
