@@ -1,3 +1,8 @@
+import os
+from dotenv import load_dotenv
+load_dotenv()
+conig_file_path = os.getenv("CONFIG_FILE_PATH")
+
 import datetime
 import os.path
 from datetime import timedelta
@@ -9,10 +14,8 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
+from langchain.agents import Tool, tool
 
-from langchain.agents import tool
-from langchain.pydantic_v1 import BaseModel, Field
-from langchain.agents import Tool
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 
@@ -21,16 +24,14 @@ def create_service():
     creds = None
     if os.path.exists("token.json"):
         creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-        # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                "credentials.json", SCOPES
+                "credentials_2.json", SCOPES  
             )
             creds = flow.run_local_server(port=0)
-        # Save the credentials for the next run
         with open("token.json", "w") as token:
             token.write(creds.to_json())
     service = build("calendar", "v3", credentials=creds)
