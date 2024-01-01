@@ -1,6 +1,6 @@
 import gradio as gr
-from agent import conversational_agent
-from calendar_functions import create_service
+
+from agent import my_agent
 import os.path
 
 from ingest_credentials import save_copy
@@ -9,7 +9,7 @@ def chatbot(message,history,uploaded_file):
     if not os.path.exists("token.json"):
         print("path == ", uploaded_file)
         save_copy(uploaded_file[0])
-    response=conversational_agent(message)
+    response=my_agent(message)
     answer =response['output']
     return answer
 

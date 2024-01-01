@@ -14,10 +14,9 @@ from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
-from langchain.agents import Tool, tool
-
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
+
 
 
 def create_service():
@@ -37,9 +36,8 @@ def create_service():
     service = build("calendar", "v3", credentials=creds)
     return service
 
-@tool
-def get_events_on_date(target_date):
-    """Used to find events on the calendar for a specific date input is the date"""
+
+def get_events_on_date(target_date: str) -> str:
     service=create_service()
     target_date = datetime.strptime(target_date, "%Y-%m-%d").date()
     start_time = target_date.isoformat() + 'T00:00:00Z'
@@ -52,9 +50,8 @@ def get_events_on_date(target_date):
 
     return events
 
-@tool
-def find_event_by_summary(summary):
-    """Used to find events on the calendar using the title or summary"""
+
+def find_event_by_summary(summary: str) ->str:
     service=create_service()
     events_result = service.events().list(
         calendarId='primary', q=summary).execute()
@@ -73,28 +70,19 @@ def find_event_by_summary(summary):
 
     return events
 
-@tool
-def create_event(input_str, attendees=None, reminders=None):
-    """Used to find events on the calendar needs to have a title,location,description,start_time, and end time as compulsory parameters"""
-
-    item_data = input_str.split(',')
-    summary = item_data[0].strip()
-    location = item_data[1].strip()
-    description = item_data[2].strip()
-    start_time = item_data[3].strip()
-    end_time=item_data[4].strip()
+def create_event(meeting_name: str,description: str, start_time: str, end_time: str, location: str=None,attendees: str=None, reminders: str=None) ->str:
     service=create_service()
     event = {
-        'summary': summary,
+        'summary': meeting_name,
         'location': location,
         'description': description,
         'start': {
             'dateTime': start_time,
-            'timeZone': 'UTC',  # Adjust timezone as needed
+            'timeZone': 'UTC+05:30',  # Adjust timezone as needed
         },
         'end': {
             'dateTime': end_time,
-            'timeZone': 'UTC',
+            'timeZone': 'UTC+05:30',
         },
         'attendees': attendees,
         'reminders': reminders,
@@ -111,38 +99,13 @@ def create_event(input_str, attendees=None, reminders=None):
         return json.dumps(output)
 
 
-def get_events_todays_date(input=None):
-    """Used to get todays date"""
+
+def today(n: int) -> str:
     today_date = datetime.now().date()
-    today_date=str(today_date)
-    events =get_events_on_date(today_date)
-    return events
+    return str(today_date)
 
 
 
-get_events_on_date=Tool(
-    name='get_events_on_date',
-    func=get_events_on_date,
-    description="Used to get the meeting details of a specific date. input is the date in the format 2023-MM-DD"
-)
 
-get_events_todays_date = Tool(
-    name='get_events_todays_date',
-    func=get_events_todays_date,
-    description="Use to when you need to get the meetings for today."
-)
-
-find_event_by_summary= Tool(
-    name='find_event_by_summary',
-    func=find_event_by_summary,
-    description="Used to find a meeting or event on calendar. input is the meeting name"
-)
-
-create_event=Tool(
-    name='create_event',
-    func=create_event,
-    description="Used to create a new event. input is the meeting-name,location, description, start_time as YYYY-MM-DDTHH:MM:SS, end_time in YYYY-MM-DDTHH:MM:SS"
-)
-tools =[find_event_by_summary,get_events_on_date,get_events_todays_date,create_event]
 
 
