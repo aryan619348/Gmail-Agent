@@ -1,6 +1,8 @@
 import os
 from dotenv import load_dotenv
 load_dotenv()
+# for deployment
+OPENAI_API_KEY=os.environ["OPENAI_API_KEY"]
 
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder

@@ -5,5 +5,3 @@ openai
 langchain
 gradio
 python-dotenv
-transformers
-torch
