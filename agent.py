@@ -15,13 +15,13 @@ from langchain.agents import AgentExecutor
 from tools import tools
 
 # llm = ChatOpenAI(model="gpt-4-0613", temperature=0)
-llm = ChatOpenAI(model="gpt-3.5-turbo-1106", temperature=0.2)
+llm = ChatOpenAI(model="gpt-3.5-turbo-1106", temperature=0)
 MEMORY_KEY = "chat_history"
 prompt = ChatPromptTemplate.from_messages(
     [
         (
             "system",
-            "You're a calendar assistant, but don't know the current date. So always the first step is to conifrm todays date and then figure out the dates to use based on the result.",
+            "You're a calendar assistant. For any calendar or events related questiosn first find the todays date and then figure out the dates to use based on the result.",
         ),
         MessagesPlaceholder(variable_name=MEMORY_KEY),
         ("user", "{input}"),
