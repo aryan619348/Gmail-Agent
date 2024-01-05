@@ -5,7 +5,8 @@ from dotenv import load_dotenv
 load_dotenv()
 # token = os.getenv("HUGGINGFACE_KEY")
 
-token=os.environ("HUGGINGFACE_KEY")
+token = os.environ["HUGGINGFACE_KEY"]
+
 from agent import my_agent
 from ingest_credentials import save_copy
 
