@@ -5,4 +5,4 @@ demo = gr.Blocks()
 with demo:
     gr.TabbedInterface([chat_bot,voice_bot],["Chatbot","Voice-Enabled Bot"])
 
-demo.launch(server_port=8000)
+demo.launch(server_name='0.0.0.0',server_port=8000)
